@@ -36,8 +36,21 @@ assert cf
 Se define la estructura de un catálogo de videos. El catálogo tendrá dos listas, una para los videos, otra para las categorias de
 los mismos.
 """
+# ==================
+# API del TAD libros
+# ==================
 
-# Construccion de modelos
+def newCatalog():
+    """
+    """
+    catalog = { 
+                'landing_points' = None
+                'countries' = None
+                'connections' = None
+              }
+
+    catalog['landing_points'] = lt.newList('ARRAY_LIST')
+
 
 # Funciones para agregar informacion al catalogo
 
