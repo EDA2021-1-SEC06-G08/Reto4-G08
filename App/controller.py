@@ -38,9 +38,29 @@ def initCatalog():
     catalog = model.newCatalog()
     return catalog
 
-
+# ================================
 # Funciones para la carga de datos
+# ================================
 
-# Funciones de ordenamiento
+def loadData(catalog):
+    loadLanding_points(catalog)
+    loadCountries(catalog)
+    loadConnections(catalog)
 
-# Funciones de consulta sobre el catálogo
+def loadLanding_points(catalog):
+    file = cf.data_dir + 'landing_points.csv'
+    input_file = csv.DictReader(open(file))
+    for elemento in input_file:
+        model.addLanding_point(catalog, elemento)
+
+def loadCountries(catalog):
+    file = cf.data_dir + 'countries.csv'
+    input_file = csv.DictReader(open(file))
+    for elemento in input_file:
+        model.addCountrie(catalog, elemento)
+
+def loadConnections(catalog):
+    file = cf.data_dir + 'connections.csv'
+    input_file = csv.DictReader(open(file))
+    for elemento in input_file:
+        model.addConnection(catalog, elemento)

@@ -34,6 +34,10 @@ se hace la solicitud al controlador para ejecutar la
 operación solicitada
 """
 
+# ====  
+# Menu
+# ====
+
 def printMenu():
     print("Bienvenido")
     print("1- Cargar el catálogo")
@@ -47,6 +51,67 @@ def printMenu():
     print("9- Los mejores canales para transmitir")
     print("10- La mejor ruta para comunicarme")
     print("11- Graficando los grafos")
+    print("0- Para salir del menu")
+
+# ===========================
+# Implementacion del catalogo
+# ===========================
+
+def initCatalog():
+    """
+    """
+    return controller.initCatalog()
+
+# ==============
+# Carga de datos
+# ==============
+
+def loadData(catalog):
+    """
+    """
+    controller.loadData(catalog)
+
+# ==================
+# Datos interesantes
+# ==================
+
+def totalLanding_points(catalog):
+    """
+    """
+    print("\n")
+    print("El total de landing_points cargados es: " + str(lt.size(catalog['landing_points'])))
+
+def totalConnections(catalog):
+    """
+    """
+    print("El total de conexiones es: " + str(lt.size(catalog['connections'])))
+
+def totalCountries(catalog):
+    """
+    """
+    print("El total de paises es: " + str(lt.size(catalog['countries'])))
+
+def firstLanding_point(catalog):
+    """
+    """
+    landing_point = lt.firstElement(catalog['landing_points'])
+    print("\n")
+    print("Los datos del primer landing_point cargado son: ")
+    print("El landing_point es: " + str(landing_point['landing_point_id']))
+    print("El nombre es: " + str(landing_point['name']))
+    print("La altitud es: " + str(landing_point['latitude']))
+    print("La longitud es: " + str(landing_point['longitude']))
+    print("\n")
+
+def lastCountrie(catalog):
+    """
+    """
+    countrie = lt.lastElement(catalog['countries'])
+    print("\n")
+    print("Los datos del ultimo pais cargado son: ")
+    print("La cantidad de poblacion de " + str(countrie['CountryName']) + " es " + str(countrie['Population']))
+    print("La cantidad de usuarios de internet de " + str(countrie['CountryName']) + " es " + str(countrie['Internet users']))
+    print("\n")
 catalog = None
 
 """
@@ -54,13 +119,24 @@ Menu principal
 """
 while True:
     printMenu()
+    print("\n")
     inputs = input('Seleccione una opción para continuar\n')
     if int(inputs[0]) == 1:
-        print("\nInicilizando....")
+        print("Inicializando....")
+        catalog = initCatalog()
+        print("\n")
     elif int(inputs[0]) == 2:
         print("Cargando información de los archivos ....")
+        loadData(catalog)
+        print("Datos cargados ....")
+        print("\n")
     elif int(inputs[0]) == 3:
         print("Cargando información de los archivos ....")
+        totalLanding_points(catalog)
+        totalConnections(catalog)
+        totalCountries(catalog)
+        firstLanding_point(catalog)
+        lastCountrie(catalog)
     elif int(inputs[0]) == 4:
         print("Cargando información de los archivos ....")
     elif int(inputs[0]) == 5:

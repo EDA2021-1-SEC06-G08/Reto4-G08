@@ -28,8 +28,10 @@
 import config as cf
 from DISClib.ADT import list as lt
 from DISClib.ADT import map as mp
+from DISClib.ADT import orderedmap as om
 from DISClib.DataStructures import mapentry as me
 from DISClib.Algorithms.Sorting import shellsort as sa
+import datetime
 assert cf
 
 """
@@ -44,15 +46,36 @@ def newCatalog():
     """
     """
     catalog = { 
-                'landing_points' = None
-                'countries' = None
-                'connections' = None
+                'landing_points': None,
+                'countries': None,
+                'connections': None
               }
 
     catalog['landing_points'] = lt.newList('ARRAY_LIST')
+    catalog['countries'] = lt.newList('ARRAY_LIST')
+    catalog['connections'] = lt.newList('ARRAY_LIST')
 
+    return catalog
 
+# ==============================================
 # Funciones para agregar informacion al catalogo
+# ==============================================
+
+def addLanding_point(catalog, elemento):
+    """
+    """
+    lt.addLast(catalog['landing_points'], elemento)
+
+def addCountrie(catalog, elemento):
+    """
+    """
+    lt.addLast(catalog['countries'], elemento)
+
+def addConnection(catalog, elemento):
+    """
+    """
+    lt.addLast(catalog['connections'], elemento)
+
 
 # Funciones para creacion de datos
 
