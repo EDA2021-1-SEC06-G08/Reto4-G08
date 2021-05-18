@@ -36,9 +36,17 @@ operación solicitada
 
 def printMenu():
     print("Bienvenido")
-    print("1- Cargar información en el catálogo")
-    print("2- ")
-
+    print("1- Cargar el catálogo")
+    print("2- Cargar la data del catalogo")
+    print("3- Datos interesantes")
+    print("4- Identificar los clusteres de comunicacion")
+    print("5- Identificar los puntos de conexion criticos de la red")
+    print("6- La ruta de menor distancia")
+    print("7- Identificar la infraestructura critica de la red")
+    print("8- Analisis de fallas")
+    print("9- Los mejores canales para transmitir")
+    print("10- La mejor ruta para comunicarme")
+    print("11- Graficando los grafos")
 catalog = None
 
 """
@@ -48,11 +56,27 @@ while True:
     printMenu()
     inputs = input('Seleccione una opción para continuar\n')
     if int(inputs[0]) == 1:
-        print("Cargando información de los archivos ....")
-
+        print("\nInicilizando....")
     elif int(inputs[0]) == 2:
-        pass
-
+        print("Cargando información de los archivos ....")
+    elif int(inputs[0]) == 3:
+        print("Cargando información de los archivos ....")
+    elif int(inputs[0]) == 4:
+        print("Cargando información de los archivos ....")
+    elif int(inputs[0]) == 5:
+        print("Cargando información de los archivos ....")
+    elif int(inputs[0]) == 6:
+        print("Cargando información de los archivos ....")
+    elif int(inputs[0]) == 7:
+        print("Cargando información de los archivos ....")
+    elif int(inputs[0]) == 8:
+        print("Cargando información de los archivos ....")
+    elif int(inputs[0]) == 9:
+        print("Cargando información de los archivos ....")
+    elif int(inputs[0]) == 10:
+        print("Cargando información de los archivos ....")
+    elif int(inputs[0]) == 11:
+        print("Cargando información de los archivos ....")
     else:
         sys.exit(0)
 sys.exit(0)
