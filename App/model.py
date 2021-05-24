@@ -66,7 +66,7 @@ def addLanding_point(catalog, elemento):
     """
     lt.addLast(catalog['landing_points'], elemento)
 
-def addCountrie(catalog, elemento):
+def addCountry(catalog, elemento):
     """
     """
     lt.addLast(catalog['countries'], elemento)
