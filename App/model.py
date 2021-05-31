@@ -25,13 +25,18 @@
  """
 
 
-import config as cf
+import datetime
+from math import asin, cos, radians, sin, sqrt
+
+from DISClib.ADT import graph as gr
 from DISClib.ADT import list as lt
 from DISClib.ADT import map as mp
 from DISClib.ADT import orderedmap as om
-from DISClib.DataStructures import mapentry as me
 from DISClib.Algorithms.Sorting import shellsort as sa
-import datetime
+from DISClib.DataStructures import mapentry as me
+
+import config as cf
+
 assert cf
 
 """
@@ -46,14 +51,24 @@ def newCatalog():
     """
     """
     catalog = { 
-                'landing_points': None,
-                'countries': None,
-                'connections': None
+                'map_landing_points': None,
+                'map_countries': None,
+                'map_connections': None,
+                'graph_landing_points': None
               }
 
-    catalog['landing_points'] = lt.newList('ARRAY_LIST')
-    catalog['countries'] = lt.newList('ARRAY_LIST')
-    catalog['connections'] = lt.newList('ARRAY_LIST')
+    catalog['map_landing_points'] = mp.newMap(numelements=3500,
+                            maptype='PROBING',
+                            loadfactor=0.4)
+    catalog['map_countries'] = mp.newMap(numelements=650,
+                            maptype='PROBING',
+                            loadfactor=0.4)
+    catalog['map_connections'] = mp.newMap(numelements=9000,
+                            maptype='PROBING',
+                            loadfactor=0.4)
+    catalog['graph_landing_points'] = gr.newGraph(datastructure='ADJ_LIST',
+                                                  directed=False,
+                                                  size=19500)
 
     return catalog
 
@@ -61,23 +76,97 @@ def newCatalog():
 # Funciones para agregar informacion al catalogo
 # ==============================================
 
-def addLanding_point(catalog, elemento):
+def addMapLanding_points(catalog, element):
     """
     """
-    lt.addLast(catalog['landing_points'], elemento)
+    idEsta = mp.contains(catalog['map_landing_points'], element['landing_point_id'])
+    if not idEsta and (mp.size(catalog['map_landing_points']) == 0):
+        mp.put(catalog['map_landing_points'], element['landing_point_id'], element)
+        print("El primer landing_point cargado es: " + str(element['id']))
+        print("El nombre es: " + str(element['name']))
+        print("La altituld es: " + str(element['latitude']))
+        print("La longutid es: " + str(element['longitude']))
+    elif not idEsta:
+        mp.put(catalog['map_landing_points'], element['landing_point_id'], element)
+    
+def addMapCountries(catalog, element):
+    """
+    """
+    idEsta = mp.contains(catalog['map_countries'],element['CountryName'])
+    if not idEsta:
+        mp.put(catalog['map_countries'],element['CountryName'], element)
 
-def addCountry(catalog, elemento):
+def addMapConnections(catalog, element):
     """
     """
-    lt.addLast(catalog['countries'], elemento)
+    idEsta = mp.contains(catalog['map_connections'], element['\ufefforigin'])
+    if not idEsta:
+        landing_point_map = mp.newMap(numelements=80,
+                                        maptype='PROBING',
+                                        loadfactor=0.4)
+        mp.put(landing_point_map, str(element['\ufefforigin']) + '-' + str(element['destination']), element)                                
+        mp.put(catalog['map_connections'], element['\ufefforigin'], landing_point_map)
+    else:
+        connection_entry = mp.get(catalog['map_connections'], element['\ufefforigin'])
+        landing_point_map = me.getValue(connection_entry)
+        connectionEsta = mp.contains(landing_point_map, str(element['\ufefforigin']) + '-' + str(element['destination']))
+        if not connectionEsta:
+            mp.put(landing_point_map, str(element['\ufefforigin']) + '-' + str(element['destination']), element)
+            mp.put(catalog['map_connections'], element['\ufefforigin'], landing_point_map)
 
-def addConnection(catalog, elemento):
+def addLanding_point_graph(catalog, element):
     """
     """
-    lt.addLast(catalog['connections'], elemento)
+    name_vertex_origen = formatVertex_origin(element)
+    name_vertex_destinantion = formatVertex_destination(element)
+    if not gr.containsVertex(catalog['graph_landing_points'], name_vertex):
+        gr.insertVertex(catalog['graph_landing_points'], name_vertex)
 
 
-# Funciones para creacion de datos
+# ================
+# Funciones Helper
+# ================
+
+def cleanServiceDistance(lastservice, service):
+    """
+    En caso de que el archivo tenga un espacio en la
+    distancia, se reemplaza con cero.
+    """
+    if service['Distance'] == '':
+        service['Distance'] = 0
+    if lastservice['Distance'] == '':
+        lastservice['Distance'] = 0
+
+def formatVertex_origin(landing_point):
+    """
+    Se formatea el nombrer del vertice con el id de la estación
+    seguido de la ruta.
+    """
+    name = landing_point['origin'] + '-'
+    name = name + landing_point['cable_id']
+    return name
+
+def formatVertex_destination(landing_point):
+    """
+    """
+    name = landing_point['destination'] + '-'
+    name = name + landing_point['cable_id']
+    return name
+
+def haversine(lat1, lon1, lat2, lon2):
+    """
+    """
+    r = 6372.8
+    dLat = radians(lat2 - lat1)
+    dLon = radians(lon2 - lon1)
+    lat1 = radians(lat1)
+    lat2 = radians(lat2)
+    a = sin(dLat/2)**2 + cos(lat1)*cos(lat2)*sin(dLon/2)**2
+    c = 2*asin(sqrt(a))
+      
+    distance = r * c
+
+    return distance
 
 # Funciones de consulta
 

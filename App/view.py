@@ -23,7 +23,13 @@
 import config as cf
 import sys
 import controller
+from DISClib.ADT import graph as gr
 from DISClib.ADT import list as lt
+from DISClib.ADT import map as mp
+from DISClib.ADT import orderedmap as om
+from DISClib.DataStructures import listiterator as it
+from DISClib.Algorithms.Sorting import shellsort as sa
+from DISClib.DataStructures import mapentry as me
 assert cf
 
 
@@ -42,15 +48,14 @@ def printMenu():
     print("Bienvenido")
     print("1- Cargar el catálogo")
     print("2- Cargar la data del catalogo")
-    print("3- Datos interesantes")
-    print("4- Identificar los clusteres de comunicacion")
-    print("5- Identificar los puntos de conexion criticos de la red")
-    print("6- La ruta de menor distancia")
-    print("7- Identificar la infraestructura critica de la red")
-    print("8- Analisis de fallas")
-    print("9- Los mejores canales para transmitir")
-    print("10- La mejor ruta para comunicarme")
-    print("11- Graficando los grafos")
+    print("3- Identificar los clusteres de comunicacion")
+    print("4- Identificar los puntos de conexion criticos de la red")
+    print("5- La ruta de menor distancia")
+    print("6- Identificar la infraestructura critica de la red")
+    print("7- Analisis de fallas")
+    print("8- Los mejores canales para transmitir")
+    print("9- La mejor ruta para comunicarme")
+    print("10- Graficando los grafos")
     print("0- Para salir del menu")
 
 # ===========================
@@ -75,43 +80,40 @@ def loadData(catalog):
 # Datos interesantes
 # ==================
 
-def totalLanding_points(catalog):
+def total_landing_point(catalog):
     """
     """
-    print("\n")
-    print("El total de landing_points cargados es: " + str(lt.size(catalog['landing_points'])))
+    print("El total de landing points es: " + str(mp.size(catalog['map_landing_points'])))
 
-def totalConnections(catalog):
+def total_connections(catalog):
     """
     """
-    print("El total de conexiones es: " + str(lt.size(catalog['connections'])))
+    total = 0
+    lista_map = mp.valueSet(catalog['map_connections'])
+    iterator = it.newIterator(lista_map)
+    while it.hasNext(iterator):
+        mapa = it.next(iterator)
+        connections = mp.valueSet(mapa)
+        iterador = it.newIterator(connections)
+        while it.hasNext(iterador):
+            element = it.next(iterador)
+            total += 1
+    print("El total de connections es: " + str(total))
 
-def totalCountries(catalog):
+def total_countries(catalog):
     """
     """
-    print("El total de paises es: " + str(lt.size(catalog['countries'])))
+    print("El total de paises es: " + str(mp.size(catalog['map_countries'])))
 
-def firstLanding_point(catalog):
+def last_country(catalog):
     """
     """
-    landing_point = lt.firstElement(catalog['landing_points'])
-    print("\n")
-    print("Los datos del primer landing_point cargado son: ")
-    print("El landing_point es: " + str(landing_point['landing_point_id']))
-    print("El nombre es: " + str(landing_point['name']))
-    print("La altitud es: " + str(landing_point['latitude']))
-    print("La longitud es: " + str(landing_point['longitude']))
-    print("\n")
+    list_countries = mp.valueSet(catalog['map_countries'])
+    last_element = lt.lastElement(list_countries)
+    print("El nombre del ultimo pais: " + str(last_element['CountryName']))
+    print("La cantidad de poblacion es: " + str(last_element['Population']))
+    print("La cantidad de usuario con interent es: " + str(last_element['Internet users']))
 
-def lastCountrie(catalog):
-    """
-    """
-    countrie = lt.lastElement(catalog['countries'])
-    print("\n")
-    print("Los datos del ultimo pais cargado son: ")
-    print("La cantidad de poblacion de " + str(countrie['CountryName']) + " es " + str(countrie['Population']))
-    print("La cantidad de usuarios de internet de " + str(countrie['CountryName']) + " es " + str(countrie['Internet users']))
-    print("\n")
 catalog = None
 
 """
@@ -128,15 +130,14 @@ while True:
     elif int(inputs[0]) == 2:
         print("Cargando información de los archivos ....")
         loadData(catalog)
+        total_landing_point(catalog)
+        total_countries(catalog)
+        last_country(catalog)
+        total_connections(catalog)
         print("Datos cargados ....")
         print("\n")
     elif int(inputs[0]) == 3:
         print("Cargando información de los archivos ....")
-        totalLanding_points(catalog)
-        totalConnections(catalog)
-        totalCountries(catalog)
-        firstLanding_point(catalog)
-        lastCountrie(catalog)
     elif int(inputs[0]) == 4:
         print("Cargando información de los archivos ....")
     elif int(inputs[0]) == 5:
@@ -150,8 +151,6 @@ while True:
     elif int(inputs[0]) == 9:
         print("Cargando información de los archivos ....")
     elif int(inputs[0]) == 10:
-        print("Cargando información de los archivos ....")
-    elif int(inputs[0]) == 11:
         print("Cargando información de los archivos ....")
     else:
         sys.exit(0)

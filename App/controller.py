@@ -54,21 +54,21 @@ def loadLanding_points(catalog):
     """
     file = cf.data_dir + 'landing_points.csv'
     input_file = csv.DictReader(open(file))
-    for elemento in input_file:
-        model.addLanding_point(catalog, elemento)
+    for element in input_file:
+        model.addMapLanding_points(catalog, element)
 
 def loadCountries(catalog):
     """
     """
     file = cf.data_dir + 'countries.csv'
     input_file = csv.DictReader(open(file))
-    for elemento in input_file:
-        model.addCountry(catalog, elemento)
-
+    for element in input_file:
+        model.addMapCountries(catalog, element)
+        
 def loadConnections(catalog):
     """
     """
     file = cf.data_dir + 'connections.csv'
     input_file = csv.DictReader(open(file))
-    for elemento in input_file:
-        model.addConnection(catalog, elemento)
+    for element in input_file:
+        model.addMapConnections(catalog, element)
