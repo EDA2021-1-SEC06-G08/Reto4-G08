@@ -137,22 +137,20 @@ def AddVertexGrap(catalog):
         landing_point = it.next(iterator)
         ciudades = landing_point['name'].split(",")
         i = 0
-        while i <= (len(ciudades)-1):
-            if mp.contains(catalog['map_countries'], ciudades[i]):
-                mapEntry = mp.get(catalog['map_countries'], ciudades[i])
-                countri = me.getValue(mapEntry)
-                city = countri['CapitalName']
-                name = city[1:]
-                name = landing_point['landing_point_id'] + "-" + name
-                if not gr.containsVertex(catalog['graph_landing_points'], name):
-                    gr.insertVertex(catalog['graph_landing_points'], name)
-            else: 
-                name = landing_point['landing_point_id']
-                city = ciudades[i]
-                city = city[1:]
-                name = name + "-" + str(city)
-                if not gr.containsVertex(catalog['graph_landing_points'], name):
-                    gr.insertVertex(catalog['graph_landing_points'], name)
+        """mapEntry = mp.get(catalog['map_countries'], ciudades[-1])
+        countri = me.getValue(mapEntry)
+        city = countri['CapitalName']
+        name = city[1:]
+        name = landing_point['landing_point_id'] + "-" + name
+        if not gr.containsVertex(catalog['graph_landing_points'], name):
+            gr.insertVertex(catalog['graph_landing_points'], name)"""
+        while i < (len(ciudades)-1):
+            name = landing_point['landing_point_id']
+            city = ciudades[i]
+            city = city[0:]
+            name = name + "-" + str(city)
+            if not gr.containsVertex(catalog['graph_landing_points'], name):
+                gr.insertVertex(catalog['graph_landing_points'], name)
             i += 1
 
 def AddEdgesGrap(catalog):
