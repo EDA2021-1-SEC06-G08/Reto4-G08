@@ -48,7 +48,8 @@ def loadData(catalog):
     loadLanding_points(catalog)
     loadCountries(catalog)
     loadConnections(catalog)
-
+    model.AddVertexGrap(catalog)
+    model.AddEdgesGrap(catalog)
 def loadLanding_points(catalog):
     """
     """

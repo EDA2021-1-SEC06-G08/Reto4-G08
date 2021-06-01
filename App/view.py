@@ -134,6 +134,7 @@ while True:
         total_countries(catalog)
         last_country(catalog)
         total_connections(catalog)
+        print(catalog['graph_landing_points'])
         print("Datos cargados ....")
         print("\n")
     elif int(inputs[0]) == 3:

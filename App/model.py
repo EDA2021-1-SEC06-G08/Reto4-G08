@@ -32,6 +32,7 @@ from DISClib.ADT import graph as gr
 from DISClib.ADT import list as lt
 from DISClib.ADT import map as mp
 from DISClib.ADT import orderedmap as om
+from DISClib.DataStructures import listiterator as it
 from DISClib.Algorithms.Sorting import shellsort as sa
 from DISClib.DataStructures import mapentry as me
 
@@ -84,17 +85,17 @@ def addMapLanding_points(catalog, element):
         mp.put(catalog['map_landing_points'], element['landing_point_id'], element)
         print("El primer landing_point cargado es: " + str(element['id']))
         print("El nombre es: " + str(element['name']))
-        print("La altituld es: " + str(element['latitude']))
-        print("La longutid es: " + str(element['longitude']))
+        print("La latitude es: " + str(element['latitude']))
+        print("La longitude es: " + str(element['longitude']))
     elif not idEsta:
         mp.put(catalog['map_landing_points'], element['landing_point_id'], element)
     
 def addMapCountries(catalog, element):
     """
     """
-    idEsta = mp.contains(catalog['map_countries'],element['CountryName'])
+    idEsta = mp.contains(catalog['map_countries'], element['CountryName'])
     if not idEsta:
-        mp.put(catalog['map_countries'],element['CountryName'], element)
+        mp.put(catalog['map_countries'], element['CountryName'], element)
 
 def addMapConnections(catalog, element):
     """
@@ -104,23 +105,105 @@ def addMapConnections(catalog, element):
         landing_point_map = mp.newMap(numelements=80,
                                         maptype='PROBING',
                                         loadfactor=0.4)
-        mp.put(landing_point_map, str(element['\ufefforigin']) + '-' + str(element['destination']), element)                                
+        elementos = lt.newList('ARRAY_LIST')
+        lt.addLast(elementos, element)
+        mp.put(landing_point_map, element['destination'], elementos)                                
         mp.put(catalog['map_connections'], element['\ufefforigin'], landing_point_map)
     else:
         connection_entry = mp.get(catalog['map_connections'], element['\ufefforigin'])
         landing_point_map = me.getValue(connection_entry)
-        connectionEsta = mp.contains(landing_point_map, str(element['\ufefforigin']) + '-' + str(element['destination']))
+        connectionEsta = mp.contains(landing_point_map, element['destination'])
         if not connectionEsta:
-            mp.put(landing_point_map, str(element['\ufefforigin']) + '-' + str(element['destination']), element)
+            landing_point_map = mp.newMap(numelements=80,
+                                        maptype='PROBING',
+                                        loadfactor=0.4)
+            elementos = lt.newList('ARRAY_LIST')
+            lt.addLast(elementos, element)
+            mp.put(landing_point_map, element['destination'], elementos)                                
+            mp.put(catalog['map_connections'], element['\ufefforigin'], landing_point_map)
+        else:
+            mapEntry = mp.get(landing_point_map, element['destination'])
+            lista = me.getValue(mapEntry)
+            lt.addLast(lista, element)
+            mp.put(landing_point_map, element['destination'], lista)
             mp.put(catalog['map_connections'], element['\ufefforigin'], landing_point_map)
 
-def addLanding_point_graph(catalog, element):
+def AddVertexGrap(catalog):
     """
     """
-    name_vertex_origen = formatVertex_origin(element)
-    name_vertex_destinantion = formatVertex_destination(element)
-    if not gr.containsVertex(catalog['graph_landing_points'], name_vertex):
-        gr.insertVertex(catalog['graph_landing_points'], name_vertex)
+    landing_point_list = mp.valueSet(catalog['map_landing_points'])
+    iterator = it.newIterator(landing_point_list)
+    while it.hasNext(iterator):
+        landing_point = it.next(iterator)
+        ciudades = landing_point['name'].split(",")
+        i = 0
+        while i <= (len(ciudades)-1):
+            if mp.contains(catalog['map_countries'], ciudades[i]):
+                mapEntry = mp.get(catalog['map_countries'], ciudades[i])
+                countri = me.getValue(mapEntry)
+                city = countri['CapitalName']
+                name = city[1:]
+                name = landing_point['landing_point_id'] + "-" + name
+                if not gr.containsVertex(catalog['graph_landing_points'], name):
+                    gr.insertVertex(catalog['graph_landing_points'], name)
+            else: 
+                name = landing_point['landing_point_id']
+                city = ciudades[i]
+                city = city[1:]
+                name = name + "-" + str(city)
+                if not gr.containsVertex(catalog['graph_landing_points'], name):
+                    gr.insertVertex(catalog['graph_landing_points'], name)
+            i += 1
+
+def AddEdgesGrap(catalog):
+    """
+    """
+    landings_points_values_map = mp.valueSet(catalog['map_connections'])
+    iterator = it.newIterator(landings_points_values_map)
+    while it.hasNext(iterator):
+        tabla_hash = it.next(iterator)
+        connections = mp.valueSet(tabla_hash)
+        iterador = it.newIterator(connections)
+        while it.hasNext(iterador):
+            landing_point_list = it.next(iterador)
+            iterabor = it.newIterator(landing_point_list)
+            while it.hasNext(iterabor):
+                landing_point = it.next(iterabor)
+                origin = landing_point['\ufefforigin']
+                destination = landing_point['destination']
+                if mp.contains(catalog['map_landing_points'], origin) and mp.contains(catalog['map_landing_points'], destination):
+                    landing_point_origin_Entry = mp.get(catalog['map_landing_points'], origin)
+                    landing_point_info_origin = me.getValue(landing_point_origin_Entry)
+                    latitude_origin = landing_point_info_origin['latitude']
+                    longitude_origin = landing_point_info_origin['longitude']
+                    landing_point_info_destination_Entry = mp.get(catalog['map_landing_points'], destination)
+                    landing_point_info_destination = me.getValue(landing_point_info_destination_Entry)
+                    latitude_destination = landing_point_info_destination['latitude']
+                    longitude_destination = landing_point_info_destination['longitude']
+                    distance_km = haversine(float(latitude_origin), float(longitude_origin), float(latitude_destination), float(longitude_destination))
+                    vertexA = lt.newList('ARRAY_LIST')
+                    vertexB = lt.newList('ARRAY_LIST')
+                    list_vertex = gr.vertices(catalog['graph_landing_points'])
+                    iteracor = it.newIterator(list_vertex)
+                    while it.hasNext(iteracor):
+                        vertex = it.next(iteracor)
+                        vertex_separado = vertex.split("-")
+                        for number in vertex_separado:
+                            if origin == number:
+                                lt.addLast(vertexA, vertex)
+                            elif destination == number:
+                                lt.addLast(vertexB, vertex)
+                    vertex_Aiterator = it.newIterator(vertexA)
+                    while it.hasNext(vertex_Aiterator):
+                        vertexA_connector = it.next(vertex_Aiterator)
+                        vertex_Biterator = it.newIterator(vertexB)
+                        while it.hasNext(vertex_Biterator):
+                            vertexB_connector = it.next(vertex_Biterator)
+                            gr.addEdge(catalog['graph_landing_points'], vertexA_connector, vertexB_connector, distance_km)
+
+
+
+
 
 
 # ================
@@ -136,22 +219,6 @@ def cleanServiceDistance(lastservice, service):
         service['Distance'] = 0
     if lastservice['Distance'] == '':
         lastservice['Distance'] = 0
-
-def formatVertex_origin(landing_point):
-    """
-    Se formatea el nombrer del vertice con el id de la estación
-    seguido de la ruta.
-    """
-    name = landing_point['origin'] + '-'
-    name = name + landing_point['cable_id']
-    return name
-
-def formatVertex_destination(landing_point):
-    """
-    """
-    name = landing_point['destination'] + '-'
-    name = name + landing_point['cable_id']
-    return name
 
 def haversine(lat1, lon1, lat2, lon2):
     """

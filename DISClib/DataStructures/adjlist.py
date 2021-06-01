@@ -307,7 +307,7 @@ def containsVertex(graph, vertex):
         error.reraise(exp, 'ajlist:containsvertex')
 
 
-def addEdge(graph, vertexa, vertexb, weight=0):
+def addEdge(graph, vertexa, vertexb, weight):
     """
     Agrega un arco entre los vertices vertexa ---- vertexb, con peso weight.
     Si el grafo es no dirigido se adiciona dos veces el mismo arco,
