@@ -235,6 +235,13 @@ def haversine(lat1, lon1, lat2, lon2):
 
 # Funciones de consulta
 
+#req 3 
+def max_interconexión(catalog):
+    graph = catalog['graph_landing_points']
+    recorrido = .dfs(graph)
+
+
+
 # Funciones utilizadas para comparar elementos dentro de una lista
 
 # Funciones de ordenamiento
