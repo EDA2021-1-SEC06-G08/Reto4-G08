@@ -73,3 +73,4 @@ def loadConnections(catalog):
     input_file = csv.DictReader(open(file))
     for element in input_file:
         model.addMapConnections(catalog, element)
+        #print(element)

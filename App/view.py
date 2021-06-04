@@ -27,7 +27,7 @@ from DISClib.ADT import graph as gr
 from DISClib.ADT import list as lt
 from DISClib.ADT import map as mp
 from DISClib.ADT import orderedmap as om
-from DISClib.DataStructures import listiterator as it
+from DISClib.DataStructures import linkedlistiterator as it
 from DISClib.Algorithms.Sorting import shellsort as sa
 from DISClib.DataStructures import mapentry as me
 assert cf

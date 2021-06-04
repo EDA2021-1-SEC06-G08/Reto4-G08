@@ -32,10 +32,11 @@ from DISClib.ADT import graph as gr
 from DISClib.ADT import list as lt
 from DISClib.ADT import map as mp
 from DISClib.ADT import orderedmap as om
-from DISClib.DataStructures import listiterator as it
+from DISClib.DataStructures import linkedlistiterator as it
 from DISClib.Algorithms.Sorting import shellsort as sa
 from DISClib.DataStructures import mapentry as me
-
+from DISClib.Algorithms import Graphs 
+from DISClib.ADT import stack as st 
 import config as cf
 
 assert cf
@@ -100,7 +101,7 @@ def addMapCountries(catalog, element):
 def addMapConnections(catalog, element):
     """
     """
-    idEsta = mp.contains(catalog['map_connections'], element['\ufefforigin'])
+    idEsta = mp.contains(catalog['map_connections'], element['ï»¿origin'])
     if not idEsta:
         landing_point_map = mp.newMap(numelements=80,
                                         maptype='PROBING',
@@ -108,9 +109,9 @@ def addMapConnections(catalog, element):
         elementos = lt.newList('ARRAY_LIST')
         lt.addLast(elementos, element)
         mp.put(landing_point_map, element['destination'], elementos)                                
-        mp.put(catalog['map_connections'], element['\ufefforigin'], landing_point_map)
+        mp.put(catalog['map_connections'], element['ï»¿origin'], landing_point_map)
     else:
-        connection_entry = mp.get(catalog['map_connections'], element['\ufefforigin'])
+        connection_entry = mp.get(catalog['map_connections'], element['ï»¿origin'])
         landing_point_map = me.getValue(connection_entry)
         connectionEsta = mp.contains(landing_point_map, element['destination'])
         if not connectionEsta:
@@ -120,13 +121,13 @@ def addMapConnections(catalog, element):
             elementos = lt.newList('ARRAY_LIST')
             lt.addLast(elementos, element)
             mp.put(landing_point_map, element['destination'], elementos)                                
-            mp.put(catalog['map_connections'], element['\ufefforigin'], landing_point_map)
+            mp.put(catalog['map_connections'], element['ï»¿origin'], landing_point_map)
         else:
             mapEntry = mp.get(landing_point_map, element['destination'])
             lista = me.getValue(mapEntry)
             lt.addLast(lista, element)
             mp.put(landing_point_map, element['destination'], lista)
-            mp.put(catalog['map_connections'], element['\ufefforigin'], landing_point_map)
+            mp.put(catalog['map_connections'], element['ï»¿origin'], landing_point_map)
 
 def AddVertexGrap(catalog):
     """
@@ -167,7 +168,7 @@ def AddEdgesGrap(catalog):
             iterabor = it.newIterator(landing_point_list)
             while it.hasNext(iterabor):
                 landing_point = it.next(iterabor)
-                origin = landing_point['\ufefforigin']
+                origin = landing_point['origin']
                 destination = landing_point['destination']
                 if mp.contains(catalog['map_landing_points'], origin) and mp.contains(catalog['map_landing_points'], destination):
                     landing_point_origin_Entry = mp.get(catalog['map_landing_points'], origin)
@@ -244,3 +245,49 @@ def haversine(lat1, lon1, lat2, lon2):
 # Funciones utilizadas para comparar elementos dentro de una lista
 
 # Funciones de ordenamiento
+
+def req2(catalog):
+    lista_vertices = gr.vertices(catalog['graph_landing_points'])
+    tamaño =lt.size(lista_vertices)
+    respuesta = lt.newList()
+    grados = lt.newList()
+    #sacamos el grado para cada uno de los vertices 
+    iterador = it.newIterator(lista_vertices)
+    while it.hasNext(iterador):
+        vertice = it.next(iterador)
+        grado = gr.degree(catalog['graph_landing_points'], vertice)
+        if grado != 0:
+           lt.addLast(respuesta, ((vertice['name'], vertice['id']), grado))
+    return respuesta 
+
+def req3(catalog, pais_a, pais_b):
+    lista_ruta = lt.newList()
+    grafo = catalog['graph_landing_points']
+    MST = Graphs.dijsktra.Dijkstra(grafo, pais_a)
+    distancia_total = Graphs.dijsktra.distTo(MST, pais_b)
+    camino_pila = Graphs.dijsktra.pathTo(MST, pais_b)
+    sacar_el_primero = st.pop(camino_pila)
+    iterador = it.newIterator(camino_pila)
+    while it.hasNext(iterador):
+        ruta = st.pop(camino_pila)
+        lt.addLast(lista_ruta, ruta)
+    return (lista_ruta, distancia_total)
+    
+
+def req4(catalog):
+    grafo = catalog['graph_landing_points']
+    vertices_grafo = gr.vertices(grafo)
+    vertice1 = lt.getElement(vertices, 0)
+    MST = Graphs.dijsktra.Dijkstra(grafo, vertice1)
+    vertices_MST = gr.vertices(MST)
+    vertice2 = lt.getElement(vertices, (lt.size(vertices_MST)-1))
+    num_nodos = gr.numVertices(MST)
+    #para hallar costo total hacer un dist to con vertice inicial y final
+    distancia_total = Graphs.dijsktra.distTo(MST, vertice2)
+
+    return num_nodos, distancia_total
+
+
+def req5(catalog, landing_point):
+    adyacentes =  gr.adjacents(catalog['graph_landing_points'], landing_point)
+    #relacionar adyacentes con paises 
