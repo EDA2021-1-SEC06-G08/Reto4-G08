@@ -439,3 +439,45 @@ def haversine(lat1, lon1, lat2, lon2):
     c = 2*asin(sqrt(a))
     distance = r * c
     return distance
+
+
+def req2(catalog):
+    lista_vertices = gr.vertices(catalog['graph_landing_points'])
+    tamaño =lt.size(lista_vertices)
+    respuesta = lt.newList()
+    grados = lt.newList()
+    #sacamos el grado para cada uno de los vertices 
+    iterador = it.newIterator(lista_vertices)
+    while it.hasNext(iterador):
+        vertice = it.next(iterador)
+        grado = gr.degree(catalog['graph_landing_points'], vertice)
+        if grado != 0:
+           lt.addLast(respuesta, ((vertice['name'], vertice['id']), grado))
+    return respuesta 
+
+def req3(catalog, pais_a, pais_b):
+    lista_ruta = lt.newList()
+    grafo = catalog['graph_landing_points']
+    MST = Graphs.dijsktra.Dijkstra(grafo, pais_a)
+    distancia_total = Graphs.dijsktra.distTo(MST, pais_b)
+    camino_pila = Graphs.dijsktra.pathTo(MST, pais_b)
+    sacar_el_primero = st.pop(camino_pila)
+    iterador = it.newIterator(camino_pila)
+    while it.hasNext(iterador):
+        ruta = st.pop(camino_pila)
+        lt.addLast(lista_ruta, ruta)
+    return (lista_ruta, distancia_total)
+    
+
+def req4(catalog):
+    grafo = catalog['graph_landing_points']
+    vertices_grafo = gr.vertices(grafo)
+    vertice1 = lt.getElement(vertices, 0)
+    MST = Graphs.dijsktra.Dijkstra(grafo, vertice1)
+    vertices_MST = gr.vertices(MST)
+    vertice2 = lt.getElement(vertices, (lt.size(vertices_MST)-1))
+    num_nodos = gr.numVertices(MST)
+    #para hallar costo total hacer un dist to con vertice inicial y final
+    distancia_total = Graphs.dijsktra.distTo(MST, vertice2)
+
+    return num_nodos, distancia_total

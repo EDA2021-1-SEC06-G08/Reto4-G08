@@ -74,3 +74,6 @@ def loadConnections(catalog):
     for element in input_file:
         model.addMapConnections(catalog, element)
         #print(element)
+
+#requerimientos 
+def req2(cata)
