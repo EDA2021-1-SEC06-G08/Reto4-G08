@@ -25,9 +25,9 @@
  """
 
 
+from DISClib.DataStructures.edge import weight
 import datetime
 from math import asin, cos, radians, sin, sqrt
-
 from DISClib.ADT import graph as gr
 from DISClib.ADT import list as lt
 from DISClib.ADT import map as mp
@@ -38,176 +38,383 @@ from DISClib.DataStructures import mapentry as me
 from DISClib.Algorithms import Graphs 
 from DISClib.ADT import stack as st 
 import config as cf
-
 assert cf
+
 
 """
 Se define la estructura de un catálogo de videos. El catálogo tendrá dos listas, una para los videos, otra para las categorias de
 los mismos.
 """
+
+
 # ==================
 # API del TAD libros
 # ==================
 
+
 def newCatalog():
     """
+    Contiene 4 tablas de hash que contiene las informacion del CSV
+    Un grafo que contiene la coneccion entre landing_point
     """
     catalog = { 
                 'map_landing_points': None,
                 'map_countries': None,
                 'map_connections': None,
+                'capitals': None,
                 'graph_landing_points': None
               }
-
-    catalog['map_landing_points'] = mp.newMap(numelements=3500,
+    catalog['map_landing_points'] = mp.newMap(numelements=3200,
                             maptype='PROBING',
                             loadfactor=0.4)
     catalog['map_countries'] = mp.newMap(numelements=650,
                             maptype='PROBING',
                             loadfactor=0.4)
-    catalog['map_connections'] = mp.newMap(numelements=9000,
+    catalog['map_connections'] = mp.newMap(numelements=1200,
+                            maptype='PROBING',
+                            loadfactor=0.4)
+    catalog['capitals'] = mp.newMap(numelements=650,
                             maptype='PROBING',
                             loadfactor=0.4)
     catalog['graph_landing_points'] = gr.newGraph(datastructure='ADJ_LIST',
                                                   directed=False,
-                                                  size=19500)
-
+                                                  size=5000)
     return catalog
+
 
 # ==============================================
 # Funciones para agregar informacion al catalogo
 # ==============================================
 
+
 def addMapLanding_points(catalog, element):
     """
+    Guarda la informacion del CSV landing_point en tablas de hash 
+    que contiene tablas de hash con las ciudades
     """
+    # Verificar si no existe el landing_point
     idEsta = mp.contains(catalog['map_landing_points'], element['landing_point_id'])
+    # Verifica si es el primer landing_point
     if not idEsta and (mp.size(catalog['map_landing_points']) == 0):
-        mp.put(catalog['map_landing_points'], element['landing_point_id'], element)
+        # Se crea una tabla de hash que contiene como Key una ciudad y como value la informacion del landing point
+        cities_map = mp.newMap(numelements=15,
+                                        maptype='PROBING',
+                                        loadfactor=0.4)
+        # Se separa las ciudades del landing_point
+        cities = element['name'].split(",")
+        # Se itera por cada ciudad para ver si es el pais
+        for city in cities:
+            CapitalName = city.strip(" ")
+            # Se verifica si el pais esta en la tabla de hash de pais
+            if mp.contains(catalog['map_countries'], CapitalName):
+                # Si no se encuentra la ciudad capital se mete
+                if not mp.contains(cities_map, city):
+                    countryEntry = mp.get(catalog['map_countries'], CapitalName)
+                    country = me.getValue(countryEntry)
+                    capital = country['CapitalName']
+                    mp.put(cities_map, capital, element)    
+            else:
+                # Si no se encuentra la ciudad se mete
+                if not mp.contains(cities_map, city):
+                    mp.put(cities_map, city, element)
+        mp.put(catalog['map_landing_points'], element['landing_point_id'], cities_map)
+        #Datos a retornar
         print("El primer landing_point cargado es: " + str(element['id']))
         print("El nombre es: " + str(element['name']))
         print("La latitude es: " + str(element['latitude']))
         print("La longitude es: " + str(element['longitude']))
     elif not idEsta:
-        mp.put(catalog['map_landing_points'], element['landing_point_id'], element)
-    
+        # Se crea una tabla de hash que contiene como Key una ciudad y como value la informacion del landing point
+        cities_map = mp.newMap(numelements=10,
+                                        maptype='PROBING',
+                                        loadfactor=0.4)
+        # Se separa las ciudades del landing_point
+        cities = element['name'].split(",")
+        # Se itera por cada ciudad para ver si es el pais
+        for city in cities:
+            CapitalName = city.strip(" ")
+            # Se verifica si el pais esta en la tabla de hash de pais
+            if mp.contains(catalog['map_countries'], CapitalName):
+                # Si no se encuentra la ciudad capital se mete
+                if not mp.contains(cities_map, city):
+                    countryEntry = mp.get(catalog['map_countries'], CapitalName)
+                    country = me.getValue(countryEntry)
+                    capital = country['CapitalName']
+                    mp.put(cities_map, capital, element)    
+            else:
+                # Si no se encuentra la ciudad se mete
+                if not mp.contains(cities_map, city):
+                    mp.put(cities_map, city, element)
+        mp.put(catalog['map_landing_points'], element['landing_point_id'], cities_map)
+
+
 def addMapCountries(catalog, element):
     """
+    Contiene la informacion de Countrie del CSV
     """
+    # Verifica si el pais esta en la tabla de hash
     idEsta = mp.contains(catalog['map_countries'], element['CountryName'])
     if not idEsta:
-        mp.put(catalog['map_countries'], element['CountryName'], element)
+        # Verifica si es el pais no esta vacio
+        if element['CountryName'] != '':
+            # Mete el pais
+            mp.put(catalog['map_countries'], element['CountryName'], element)
+            # Mete la capital
+            mp.put(catalog['capitals'], element['CapitalName'], element)
+
 
 def addMapConnections(catalog, element):
     """
+    Guarda la informacion de archivo Connections del CSV
     """
-    idEsta = mp.contains(catalog['map_connections'], element['ï»¿origin'])
+    # Verifica que este el landing_point de origen en la tabla de hash
+    idEsta = mp.contains(catalog['map_connections'], element['\ufefforigin'])
     if not idEsta:
-        landing_point_map = mp.newMap(numelements=80,
+        # Crear la tabla de hash para el landing_point_destination 
+        landing_point_destination_map = mp.newMap(numelements=20,
                                         maptype='PROBING',
                                         loadfactor=0.4)
-        elementos = lt.newList('ARRAY_LIST')
-        lt.addLast(elementos, element)
-        mp.put(landing_point_map, element['destination'], elementos)                                
-        mp.put(catalog['map_connections'], element['ï»¿origin'], landing_point_map)
+        # crear la tabla de hash de cables
+        landing_point_cable_map = mp.newMap(numelements=10,
+                                        maptype='PROBING',
+                                        loadfactor=0.4)
+        # Se mete la informacion en la tabla de hash
+        mp.put(landing_point_cable_map, element['cable_name'], element)
+        mp.put(landing_point_destination_map, element['destination'], landing_point_cable_map)                                
+        mp.put(catalog['map_connections'], element['\ufefforigin'], landing_point_destination_map)    
     else:
-        connection_entry = mp.get(catalog['map_connections'], element['ï»¿origin'])
-        landing_point_map = me.getValue(connection_entry)
-        connectionEsta = mp.contains(landing_point_map, element['destination'])
+        # Obtener la tabla de hash de origen
+        landing_point_origen_mapEntry = mp.get(catalog['map_connections'], element['\ufefforigin'])
+        landing_point_origen_map = me.getValue(landing_point_origen_mapEntry)
+        # Ver si esta el landing point de destination
+        connectionEsta = mp.contains(landing_point_origen_map, element['destination'])
         if not connectionEsta:
-            landing_point_map = mp.newMap(numelements=80,
-                                        maptype='PROBING',
-                                        loadfactor=0.4)
-            elementos = lt.newList('ARRAY_LIST')
-            lt.addLast(elementos, element)
-            mp.put(landing_point_map, element['destination'], elementos)                                
-            mp.put(catalog['map_connections'], element['ï»¿origin'], landing_point_map)
+            # crear la tabla de hash de cables
+            landing_point_cable_map = mp.newMap(numelements=10,
+                                            maptype='PROBING',
+                                            loadfactor=0.4)
+            # Se mete la informacion
+            mp.put(landing_point_cable_map, element['cable_name'], element)
+            mp.put(landing_point_origen_map, element['destination'], landing_point_cable_map)
+            mp.put(catalog['map_connections'], element['\ufefforigin'], landing_point_origen_map)
         else:
-            mapEntry = mp.get(landing_point_map, element['destination'])
-            lista = me.getValue(mapEntry)
-            lt.addLast(lista, element)
-            mp.put(landing_point_map, element['destination'], lista)
-            mp.put(catalog['map_connections'], element['ï»¿origin'], landing_point_map)
+            # Obtener la tabla de hash de destination
+            landing_point_destination_entry = mp.get(landing_point_origen_map, element['destination'])
+            landing_point_destination_map = me.getValue(landing_point_destination_entry)
+            # Ver si se encuentra el cable
+            cableEsta = mp.contains(landing_point_destination_map, element['cable_name'])
+            if not cableEsta:
+                # Se mete la informacion                                
+                mp.put(landing_point_destination_map, element['cable_name'], element)
+                mp.put(landing_point_origen_map, element['destination'], landing_point_destination_map)
+                mp.put(catalog['map_connections'], element['\ufefforigin'], landing_point_origen_map)
 
-def AddVertexGrap(catalog):
+
+def AddVertexLanding_PointCiudad(catalog):
+    """
+    Crea una lista de vertices que tiene la forma 3316-Abidjan
+    """
+    # Crea una tabla de hash que contiene los vertices
+    VertexLanding_point = mp.newMap(numelements=6700,
+                                    maptype='PROBING',
+                                    loadfactor=0.4)
+    # Obtener la lista de landing_points
+    landing_point_list = mp.keySet(catalog['map_landing_points'])
+    # Iterar sobre la lista de landing_points
+    landing_point_iterator = it.newIterator(landing_point_list)
+    while it.hasNext(landing_point_iterator):
+        landing_point = it.next(landing_point_iterator)
+        # Obtener las tablas de hash que tienes las ciudades 
+        landing_point_hash_Entry = mp.get(catalog['map_landing_points'], landing_point)
+        landing_point_hash = me.getValue(landing_point_hash_Entry)
+        # Obtener la lista de ciudades
+        cities_list = mp.keySet(landing_point_hash)
+        # Iterar sobre la lista de ciudades
+        cities_list_iterator = it.newIterator(cities_list)
+        while it.hasNext(cities_list_iterator):
+            city = it.next(cities_list_iterator)
+            # Creo el vertice
+            vertex = landing_point + "*" + str(city.strip(" "))
+            # Agrego el vertice
+            mp.put(VertexLanding_point, vertex, vertex)
+    return VertexLanding_point
+    
+
+def addVertexCable(catalog, VertexLanding_point):
+    """
+    A la lista de vertices le agrega a cada vertice el nombre del cable que pasa por ahi 3316-Abidjan-A2frica
+    """
+    # Crea una tabla de hash de vertices
+    vertex_return_nocapital = mp.newMap(numelements=6000,
+                              maptype='PROBING',
+                              loadfactor=0.4)
+    vertex_return_capital = mp.newMap(numelements=6000,
+                              maptype='PROBING',
+                              loadfactor=0.4)
+    # Obtener el origen de cada landing_point en Connections
+    origin_list = mp.keySet(catalog['map_connections'])
+    # Iterar sobre los origenes
+    origin_iterator = it.newIterator(origin_list)
+    while it.hasNext(origin_iterator):
+        origin = it.next(origin_iterator)
+        # Obtener la tabla de hash del origin
+        tabla_origin_Entry = mp.get(catalog['map_connections'], origin)
+        tabla_origin = me.getValue(tabla_origin_Entry)
+        # Obtener la lista de destination
+        destination_list = mp.keySet(tabla_origin)
+        # Iterar sobre la lista de destination
+        destination_iterator = it.newIterator(destination_list)
+        while it.hasNext(destination_iterator):
+            destination = it.next(destination_iterator)
+            # Obtener la tabla de hash del destination
+            tabla_destination_Entry = mp.get(tabla_origin, destination)
+            tabla_destination = me.getValue(tabla_destination_Entry)
+            # Obtener la lista de cables
+            cable_list = mp.keySet(tabla_destination)
+            # Iterar sobre la lista de cable
+            cable_list_iterator = it.newIterator(cable_list)
+            while it.hasNext(cable_list_iterator):
+                cable = it.next(cable_list_iterator)
+                # Obtener los vertices
+                VertexLanding_point_list = mp.keySet(VertexLanding_point)
+                # Iterar sobre la lista de VertexLanding_point
+                VertexLanding_point_iterator = it.newIterator(VertexLanding_point_list)
+                while it.hasNext(VertexLanding_point_iterator):
+                    vertex = it.next(VertexLanding_point_iterator)
+                    # Separar el vertice
+                    vertex_separado = vertex.split("*")
+                    # Iterar sobre el vertice separado 
+                    if (vertex_separado[0] == origin or vertex_separado[0] == destination) and not mp.contains(catalog['capitals'], vertex_separado[1]):
+                        vertex = vertex + "*" + cable
+                        mp.put(vertex_return_nocapital, vertex, vertex)
+                    elif (vertex_separado[0] == origin or vertex_separado[0] == destination) and mp.contains(catalog['capitals'], vertex_separado[1]):
+                        vertex = vertex + "*" + cable
+                        mp.put(vertex_return_capital, vertex, vertex)
+    return vertex_return_nocapital,vertex_return_capital
+
+
+def AddVertexGrapNoCapital(catalog):
+    """
+    Agrega los vertex al grafo sin las capitales
+    """
+    # Obtener la lista de vertex landing_point-ciudad
+    VertexLanding_point = AddVertexLanding_PointCiudad(catalog)
+    # Obtener el map de vertex
+    Vertex_map = addVertexCable(catalog, VertexLanding_point)
+    # Obtener la lista de vertex
+    Vertex_list = mp.keySet(Vertex_map[0])
+    # iterar sobre vertex
+    Vertex_iterator = it.newIterator(Vertex_list)
+    while it.hasNext(Vertex_iterator):
+        vertex = it.next(Vertex_iterator)
+        gr.insertVertex(catalog['graph_landing_points'], vertex)
+
+
+def AddEdgesGrapNoCapital(catalog):
+    """
+    Agrega el arco entre 2 vertex
+    """
+    # Obtener la lista de origen
+    origin_keys_list= mp.keySet(catalog['map_connections'])
+    # Iterar sobre la lista de origen
+    origin_keys_iterator = it.newIterator(origin_keys_list)
+    while it.hasNext(origin_keys_iterator):
+        origin = it.next(origin_keys_iterator)
+        # Obtener la tabla de hash de destination
+        destination_map_Entry = mp.get(catalog['map_connections'], origin)
+        destination_map = me.getValue(destination_map_Entry)
+        # Obtener la lista destination
+        destination_keys_list = mp.keySet(destination_map)
+        # Iterar sobra la lista de destination
+        destination_keys_iterator = it.newIterator(destination_keys_list)
+        while it.hasNext(destination_keys_iterator):
+            destination = it.next(destination_keys_iterator)
+            # Obtener la tabla de cables
+            cable_map_Entry = mp.get(destination_map, destination)
+            cable_map = me.getValue(cable_map_Entry)
+            # Obtener la lista de cables
+            cable_keys_list = mp.keySet(cable_map)
+            # Iterar sobre la lista de cables
+            cable_keys_iterator = it.newIterator(cable_keys_list)
+            while it.hasNext(cable_keys_iterator):
+                cable = it.next(cable_keys_iterator)
+                # Obtener los vertex
+                vertex_list  = gr.vertices(catalog['graph_landing_points'])
+                # Vertex A
+                vertexA_list = lt.newList('ARRAY_LIST')
+                # Vertex B
+                vertexB_list = lt.newList('ARRAY_LIST')
+                # iterar sobre la lista de vertex
+                vertex_list_iterator = it.newIterator(vertex_list)
+                while it.hasNext(vertex_list_iterator):
+                    vertex = it.next(vertex_list_iterator)
+                    # Separar el vertex
+                    vertex_separado = vertex.split("*")
+                    # Ver si es origin o destination
+                    if vertex_separado[0] == origin and vertex_separado[2] == cable:
+                        lt.addLast(vertexA_list, vertex)
+                    elif vertex_separado[0] == destination and vertex_separado[2] == cable:
+                        lt.addLast(vertexB_list, vertex)
+                weight = weightConnection(catalog, origin, destination)
+                # Iterar sobre list Vertex A para unir
+                vertexA_iterator = it.newIterator(vertexA_list)
+                while it.hasNext(vertexA_iterator):
+                    vertexA = it.next(vertexA_iterator)
+                    # Iterar sobre list Vertex B para unir
+                    vertexB_iterator = it.newIterator(vertexB_list)
+                    while it.hasNext(vertexB_iterator):
+                        vertexB = it.next(vertexB_iterator)
+                        gr.addEdge(catalog['graph_landing_points'], vertexA, vertexB, weight)
+
+
+def weightConnection(catalog, origin, destination):
+    """
+    Se obtiene el peso entre 2 landing_point
+    """
+    # Obtener la tabla de origin
+    tabla_origin_Entry = mp.get(catalog['map_landing_points'], origin)
+    tabla_origin = me.getValue(tabla_origin_Entry)
+    # Obtener la tabla de destination
+    tabla_destination_Entry = mp.get(catalog['map_landing_points'], destination)
+    tabla_destination = me.getValue(tabla_destination_Entry)
+    # Obtener el elemento de origin
+    values_origin_list = mp.valueSet(tabla_origin)
+    # Obtener el elemento de destination
+    values_destination_list = mp.valueSet(tabla_destination)
+    # Iterar sobra values origin
+    values_origin_iterator = it.newIterator(values_origin_list)
+    element_origin = it.next(values_origin_iterator)
+    # Iterar sobra values destination
+    values_destination_iterator = it.newIterator(values_destination_list)
+    element_destination = it.next(values_destination_iterator)
+    # Obtener la altitud y longitud de origin
+    altitud_origin = element_origin['latitude']
+    longitud_origin = element_origin['longitude']
+    # Obtener la altitud y longitud de destination
+    altitud_destination = element_destination['latitude']
+    longitud_destination = element_destination['longitude']
+    weight = haversine(float(altitud_origin), float(longitud_origin), float(altitud_destination), float(longitud_destination))
+    return weight
+
+
+def addVertexCapital(catalog):
     """
     """
-    landing_point_list = mp.valueSet(catalog['map_landing_points'])
-    iterator = it.newIterator(landing_point_list)
-    while it.hasNext(iterator):
-        landing_point = it.next(iterator)
-        ciudades = landing_point['name'].split(",")
-        i = 0
-        """mapEntry = mp.get(catalog['map_countries'], ciudades[-1])
-        countri = me.getValue(mapEntry)
-        city = countri['CapitalName']
-        name = city[1:]
-        name = landing_point['landing_point_id'] + "-" + name
-        if not gr.containsVertex(catalog['graph_landing_points'], name):
-            gr.insertVertex(catalog['graph_landing_points'], name)"""
-        while i < (len(ciudades)-1):
-            name = landing_point['landing_point_id']
-            city = ciudades[i]
-            city = city[0:]
-            name = name + "-" + str(city)
-            if not gr.containsVertex(catalog['graph_landing_points'], name):
-                gr.insertVertex(catalog['graph_landing_points'], name)
-            i += 1
+    pass
 
-def AddEdgesGrap(catalog):
+
+def grap_Complete(catalog):
     """
+    Agrega las funciones de la creacion del grafo
     """
-    landings_points_values_map = mp.valueSet(catalog['map_connections'])
-    iterator = it.newIterator(landings_points_values_map)
-    while it.hasNext(iterator):
-        tabla_hash = it.next(iterator)
-        connections = mp.valueSet(tabla_hash)
-        iterador = it.newIterator(connections)
-        while it.hasNext(iterador):
-            landing_point_list = it.next(iterador)
-            iterabor = it.newIterator(landing_point_list)
-            while it.hasNext(iterabor):
-                landing_point = it.next(iterabor)
-                origin = landing_point['origin']
-                destination = landing_point['destination']
-                if mp.contains(catalog['map_landing_points'], origin) and mp.contains(catalog['map_landing_points'], destination):
-                    landing_point_origin_Entry = mp.get(catalog['map_landing_points'], origin)
-                    landing_point_info_origin = me.getValue(landing_point_origin_Entry)
-                    latitude_origin = landing_point_info_origin['latitude']
-                    longitude_origin = landing_point_info_origin['longitude']
-                    landing_point_info_destination_Entry = mp.get(catalog['map_landing_points'], destination)
-                    landing_point_info_destination = me.getValue(landing_point_info_destination_Entry)
-                    latitude_destination = landing_point_info_destination['latitude']
-                    longitude_destination = landing_point_info_destination['longitude']
-                    distance_km = haversine(float(latitude_origin), float(longitude_origin), float(latitude_destination), float(longitude_destination))
-                    vertexA = lt.newList('ARRAY_LIST')
-                    vertexB = lt.newList('ARRAY_LIST')
-                    list_vertex = gr.vertices(catalog['graph_landing_points'])
-                    iteracor = it.newIterator(list_vertex)
-                    while it.hasNext(iteracor):
-                        vertex = it.next(iteracor)
-                        vertex_separado = vertex.split("-")
-                        for number in vertex_separado:
-                            if origin == number:
-                                lt.addLast(vertexA, vertex)
-                            elif destination == number:
-                                lt.addLast(vertexB, vertex)
-                    vertex_Aiterator = it.newIterator(vertexA)
-                    while it.hasNext(vertex_Aiterator):
-                        vertexA_connector = it.next(vertex_Aiterator)
-                        vertex_Biterator = it.newIterator(vertexB)
-                        while it.hasNext(vertex_Biterator):
-                            vertexB_connector = it.next(vertex_Biterator)
-                            gr.addEdge(catalog['graph_landing_points'], vertexA_connector, vertexB_connector, distance_km)
-
-
-
-
+    AddVertexGrapNoCapital(catalog)
+    AddEdgesGrapNoCapital(catalog)
 
 
 # ================
 # Funciones Helper
 # ================
+
 
 def cleanServiceDistance(lastservice, service):
     """
@@ -219,6 +426,7 @@ def cleanServiceDistance(lastservice, service):
     if lastservice['Distance'] == '':
         lastservice['Distance'] = 0
 
+
 def haversine(lat1, lon1, lat2, lon2):
     """
     """
@@ -229,65 +437,5 @@ def haversine(lat1, lon1, lat2, lon2):
     lat2 = radians(lat2)
     a = sin(dLat/2)**2 + cos(lat1)*cos(lat2)*sin(dLon/2)**2
     c = 2*asin(sqrt(a))
-      
     distance = r * c
-
     return distance
-
-# Funciones de consulta
-
-#req 3 
-"""def max_interconexión(catalog):
-    graph = catalog['graph_landing_points']"""
-    
-
-
-# Funciones utilizadas para comparar elementos dentro de una lista
-
-# Funciones de ordenamiento
-
-def req2(catalog):
-    lista_vertices = gr.vertices(catalog['graph_landing_points'])
-    tamaño =lt.size(lista_vertices)
-    respuesta = lt.newList()
-    grados = lt.newList()
-    #sacamos el grado para cada uno de los vertices 
-    iterador = it.newIterator(lista_vertices)
-    while it.hasNext(iterador):
-        vertice = it.next(iterador)
-        grado = gr.degree(catalog['graph_landing_points'], vertice)
-        if grado != 0:
-           lt.addLast(respuesta, ((vertice['name'], vertice['id']), grado))
-    return respuesta 
-
-def req3(catalog, pais_a, pais_b):
-    lista_ruta = lt.newList()
-    grafo = catalog['graph_landing_points']
-    MST = Graphs.dijsktra.Dijkstra(grafo, pais_a)
-    distancia_total = Graphs.dijsktra.distTo(MST, pais_b)
-    camino_pila = Graphs.dijsktra.pathTo(MST, pais_b)
-    sacar_el_primero = st.pop(camino_pila)
-    iterador = it.newIterator(camino_pila)
-    while it.hasNext(iterador):
-        ruta = st.pop(camino_pila)
-        lt.addLast(lista_ruta, ruta)
-    return (lista_ruta, distancia_total)
-    
-
-def req4(catalog):
-    grafo = catalog['graph_landing_points']
-    vertices_grafo = gr.vertices(grafo)
-    vertice1 = lt.getElement(vertices, 0)
-    MST = Graphs.dijsktra.Dijkstra(grafo, vertice1)
-    vertices_MST = gr.vertices(MST)
-    vertice2 = lt.getElement(vertices, (lt.size(vertices_MST)-1))
-    num_nodos = gr.numVertices(MST)
-    #para hallar costo total hacer un dist to con vertice inicial y final
-    distancia_total = Graphs.dijsktra.distTo(MST, vertice2)
-
-    return num_nodos, distancia_total
-
-
-def req5(catalog, landing_point):
-    adyacentes =  gr.adjacents(catalog['graph_landing_points'], landing_point)
-    #relacionar adyacentes con paises 
