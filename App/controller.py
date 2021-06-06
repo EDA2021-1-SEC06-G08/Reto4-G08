@@ -45,11 +45,11 @@ def initCatalog():
 def loadData(catalog):
     """
     """
-    loadLanding_points(catalog)
     loadCountries(catalog)
+    loadLanding_points(catalog)
     loadConnections(catalog)
-    model.AddVertexGrap(catalog)
-    model.AddEdgesGrap(catalog)
+    model.grap_Complete(catalog)
+    
 def loadLanding_points(catalog):
     """
     """
