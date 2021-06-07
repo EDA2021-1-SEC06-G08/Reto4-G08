@@ -36,6 +36,7 @@ from DISClib.DataStructures import listiterator as it
 from DISClib.Algorithms.Sorting import shellsort as sa
 from DISClib.DataStructures import mapentry as me
 from DISClib.Algorithms import Graphs 
+from DISClib.Algorithms.Graphs import scc
 from DISClib.ADT import stack as st 
 import config as cf
 assert cf
@@ -441,32 +442,79 @@ def haversine(lat1, lon1, lat2, lon2):
     return distance
 
 
+def req1(catalog, nombre1, nombre2):
+    kosaraju = scc.KosarajuSCC(catalog['graph_landing_points'])
+    vertices = gr.vertices(catalog['graph_landing_points'])
+    vert1 = None
+    vert2 = None 
+    for vertice in lt.iterator(vertices):
+        if vertice.split(sep='*')[1] == nombre1:
+            vert1 = vertice
+        elif vertice.split(sep='*')[1] == nombre2:
+            vert2 = vertice
+
+    for vertice in lt.iterator(vertices):
+        if vertice.split(sep='*')[1] == nombre2:
+            vert2 = vertice
+        elif vertice.split(sep='*')[1] == nombre1:
+            vert1 = vertice
+
+    vertice_x = lt.getElement(vertices, 0)
+    num_componentes_conectados = scc.sccCount(catalog['graph_landing_points'], kosaraju, vertice_x)
+    #mismo_cluster = scc.stronglyConnected(kosaraju, vert1, vert2)
+    #if mismo_cluster:
+    #    respuesta = 'Los dos landing points están en el mismo clúster'
+    #else:
+    #    respuesta = 'Los dos landing points no están en el mismo clúster'
+    #return num_componentes_conectados, respuesta 
+
 def req2(catalog):
+    maxvert = None 
+    maxdeg = 0 
     lista_vertices = gr.vertices(catalog['graph_landing_points'])
-    tamaño =lt.size(lista_vertices)
-    respuesta = lt.newList()
-    grados = lt.newList()
-    #sacamos el grado para cada uno de los vertices 
-    iterador = it.newIterator(lista_vertices)
-    while it.hasNext(iterador):
-        vertice = it.next(iterador)
-        grado = gr.degree(catalog['graph_landing_points'], vertice)
-        if grado != 0:
-           lt.addLast(respuesta, ((vertice['name'], vertice['id']), grado))
-    return respuesta 
+    for vert in lt.iterator(lista_vertices):
+        degree = gr.degree(catalog['graph_landing_points'], vert)
+        if (degree > maxdeg):
+            maxvert = vert 
+            maxdeg = degree
+    return maxvert, maxdeg
 
 def req3(catalog, pais_a, pais_b):
-    lista_ruta = lt.newList()
+    #sacar capital a partir de país 
+    entry1 = mp.get(catalog['map_countries'], pais_a)
+    vert1 = me.getValue(entry1)['CapitalName']
+    entry2 = mp.get(catalog['map_countries'], pais_b)
+    vert2 = me.getValue(entry2)['CapitalName']
     grafo = catalog['graph_landing_points']
-    MST = Graphs.dijsktra.Dijkstra(grafo, pais_a)
-    distancia_total = Graphs.dijsktra.distTo(MST, pais_b)
-    camino_pila = Graphs.dijsktra.pathTo(MST, pais_b)
-    sacar_el_primero = st.pop(camino_pila)
+    lista_ruta = lt.newList()
+    vertices = gr.vertices(catalog['graph_landing_points'])
+
+    landing_point_a = None 
+    landing_point_b = None 
+
+    for vert in lt.iterator(vertices):
+        vertexa = vert.split(sep ='*')
+        if vertexa[1] == vert1:
+            landing_point_a = vert
+        elif vertexa[1] == vert2:
+            landing_point_b = vert
+
+    for vert in lt.iterator(vertices):
+        vertexb = vert.split(sep ='*')
+        if vertexb[1] == vert2:
+            landing_point_b = vert
+        elif vertexb[1] == vert1:
+            landing_point_a = vert
+        
+
+    MST = Graphs.dijsktra.Dijkstra(grafo, landing_point_a)
+    distancia_total = Graphs.dijsktra.distTo(MST, landing_point_b)
+    camino_pila = Graphs.dijsktra.pathTo(MST, landing_point_b)
     iterador = it.newIterator(camino_pila)
     while it.hasNext(iterador):
         ruta = st.pop(camino_pila)
         lt.addLast(lista_ruta, ruta)
-    return (lista_ruta, distancia_total)
+    return distancia_total, lista_ruta
     
 
 def req4(catalog):
@@ -475,9 +523,46 @@ def req4(catalog):
     vertice1 = lt.getElement(vertices, 0)
     MST = Graphs.dijsktra.Dijkstra(grafo, vertice1)
     vertices_MST = gr.vertices(MST)
-    vertice2 = lt.getElement(vertices, (lt.size(vertices_MST)-1))
+    vertice2 = lt.getElement(vertices_MST, (lt.size(vertices_MST)-1))
     num_nodos = gr.numVertices(MST)
     #para hallar costo total hacer un dist to con vertice inicial y final
     distancia_total = Graphs.dijsktra.distTo(MST, vertice2)
 
     return num_nodos, distancia_total
+
+def req5(catalog, nombre_landing_point):
+    grafo = catalog['graph_landing_points']
+    #paises = mp.keySet(catalog['map_countries'])
+    lista_vertices = gr.vertices(catalog['graph_landing_points']) 
+    lista_ciudades_afectadas = lt.newList(datastructure= 'ARRAY_LIST')
+    tabla_landing_points = catalog['map_landing_points']
+    #llaves_landing_points = mp.keySet(tabla_landing_points)
+    lista_numvertice = lt.newList(datastructure= 'ARRAY_LIST')
+    lista_paises_afectados = lt.newList(datastructure= 'ARRAY_LIST')
+    lista_tablas = lt.newList(datastructure= 'ARRAY_LIST')
+    vertice = None 
+    for vert in lt.iterator(lista_vertices):
+        if nombre_landing_point == vert.split(sep='*')[1]:
+            vertice = vert
+            paises_afectados = gr.adjacents(grafo, vertice)
+            for vertices in lt.iterator(paises_afectados):
+                if (int(lt.isPresent(lista_ciudades_afectadas, vertices.split(sep='*')[1]))) == 0:
+                    lt.addLast(lista_ciudades_afectadas, vertices.split(sep='*')[1])
+                    lt.addLast(lista_numvertice, vertices.split(sep='*')[0])
+                    for numvertices in lt.iterator(lista_numvertice):
+                        entry1 = mp.get(tabla_landing_points, numvertices)
+                        tabla1 = me.getValue(entry1)
+                        valores = mp.valueSet(tabla1)
+                        values_iterator = it.newIterator(valores)
+                        elemento = it.next(values_iterator)
+                        ciudades_elemento = elemento['name'].split(sep= ',')
+                        for ciudades in lt.iterator(lista_ciudades_afectadas):
+                            if ciudades in ciudades_elemento:
+                                pais = ciudades_elemento[-1]
+                                if (int(lt.isPresent(lista_paises_afectados, pais))) == 0:
+                                    lt.addLast(lista_paises_afectados, pais)
+                       
+
+    return lt.size(lista_paises_afectados), lista_paises_afectados['elements']
+
+

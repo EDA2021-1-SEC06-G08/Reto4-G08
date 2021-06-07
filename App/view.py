@@ -138,14 +138,40 @@ while True:
         print("\n")
     elif int(inputs[0]) == 3:
         print("Cargando información de los archivos ....")
+        nombre1 = input('Inserte el landing_point1: ')
+        nombre2 = input('Inserte el landing_point2: ')
+        respuesta = controller.req1(catalog, nombre1, nombre2)
+        print("Tiempo [ms]: ", f"{respuesta[1]:.3f}", "  ||  ",
+              "Memoria [kB]: ", f"{respuesta[2]:.3f}")
+
     elif int(inputs[0]) == 4:
         print("Cargando información de los archivos ....")
+        respuesta = controller.req2(catalog) 
+        print("Tiempo [ms]: ", f"{respuesta[1]:.3f}", "  ||  ",
+              "Memoria [kB]: ", f"{respuesta[2]:.3f}")
+        print(respuesta)
+
     elif int(inputs[0]) == 5:
         print("Cargando información de los archivos ....")
+        pais_a = input('Inserte el país a: ')
+        pais_b = input('Inserte el país b: ')
+        respuesta = controller.req3(catalog, pais_a, pais_b)
+
+        print("Tiempo [ms]: ", f"{respuesta[1]:.3f}", "  ||  ",
+              "Memoria [kB]: ", f"{respuesta[2]:.3f}")
+
+        print(respuesta)
+
     elif int(inputs[0]) == 6:
         print("Cargando información de los archivos ....")
     elif int(inputs[0]) == 7:
         print("Cargando información de los archivos ....")
+        nombre_landing_point = input('Inserte el nombre del landing_point: ')
+        respuesta = controller.req5(catalog, nombre_landing_point)
+        print("Tiempo [ms]: ", f"{respuesta[1]:.3f}", "  ||  ",
+              "Memoria [kB]: ", f"{respuesta[2]:.3f}")
+        print(respuesta)
+
     elif int(inputs[0]) == 8:
         print("Cargando información de los archivos ....")
     elif int(inputs[0]) == 9:
