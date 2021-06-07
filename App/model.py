@@ -25,6 +25,8 @@
  """
 
 
+from DISClib.DataStructures.arraylist import addLast, size
+from App.controller import loadLanding_points
 from DISClib.DataStructures.edge import weight
 import datetime
 from math import asin, cos, radians, sin, sqrt
@@ -60,6 +62,7 @@ def newCatalog():
                 'map_countries': None,
                 'map_connections': None,
                 'capitals': None,
+                'vertex_capitals': None,
                 'graph_landing_points': None
               }
     catalog['map_landing_points'] = mp.newMap(numelements=3200,
@@ -74,6 +77,9 @@ def newCatalog():
     catalog['capitals'] = mp.newMap(numelements=650,
                             maptype='PROBING',
                             loadfactor=0.4)
+    catalog['vertex_capitals'] = mp.newMap(numelements=5500,
+                            maptype='PROBING',
+                            loadfactor=0.4)                        
     catalog['graph_landing_points'] = gr.newGraph(datastructure='ADJ_LIST',
                                                   directed=False,
                                                   size=5000)
@@ -238,17 +244,11 @@ def AddVertexLanding_PointCiudad(catalog):
     return VertexLanding_point
     
 
-def addVertexCable(catalog, VertexLanding_point):
+def addVertex(catalog):
     """
     A la lista de vertices le agrega a cada vertice el nombre del cable que pasa por ahi 3316-Abidjan-A2frica
     """
-    # Crea una tabla de hash de vertices
-    vertex_return_nocapital = mp.newMap(numelements=6000,
-                              maptype='PROBING',
-                              loadfactor=0.4)
-    vertex_return_capital = mp.newMap(numelements=6000,
-                              maptype='PROBING',
-                              loadfactor=0.4)
+    VertexLanding_point = AddVertexLanding_PointCiudad(catalog)
     # Obtener el origen de cada landing_point en Connections
     origin_list = mp.keySet(catalog['map_connections'])
     # Iterar sobre los origenes
@@ -282,33 +282,12 @@ def addVertexCable(catalog, VertexLanding_point):
                     # Separar el vertice
                     vertex_separado = vertex.split("*")
                     # Iterar sobre el vertice separado 
-                    if (vertex_separado[0] == origin or vertex_separado[0] == destination) and not mp.contains(catalog['capitals'], vertex_separado[1]):
+                    if vertex_separado[0] == origin or vertex_separado[0] == destination:
                         vertex = vertex + "*" + cable
-                        mp.put(vertex_return_nocapital, vertex, vertex)
-                    elif (vertex_separado[0] == origin or vertex_separado[0] == destination) and mp.contains(catalog['capitals'], vertex_separado[1]):
-                        vertex = vertex + "*" + cable
-                        mp.put(vertex_return_capital, vertex, vertex)
-    return vertex_return_nocapital,vertex_return_capital
+                        gr.insertVertex(catalog['graph_landing_points'], vertex)
 
 
-def AddVertexGrapNoCapital(catalog):
-    """
-    Agrega los vertex al grafo sin las capitales
-    """
-    # Obtener la lista de vertex landing_point-ciudad
-    VertexLanding_point = AddVertexLanding_PointCiudad(catalog)
-    # Obtener el map de vertex
-    Vertex_map = addVertexCable(catalog, VertexLanding_point)
-    # Obtener la lista de vertex
-    Vertex_list = mp.keySet(Vertex_map[0])
-    # iterar sobre vertex
-    Vertex_iterator = it.newIterator(Vertex_list)
-    while it.hasNext(Vertex_iterator):
-        vertex = it.next(Vertex_iterator)
-        gr.insertVertex(catalog['graph_landing_points'], vertex)
-
-
-def AddEdgesGrapNoCapital(catalog):
+def AddEdges(catalog):
     """
     Agrega el arco entre 2 vertex
     """
@@ -342,6 +321,10 @@ def AddEdgesGrapNoCapital(catalog):
                 vertexA_list = lt.newList('ARRAY_LIST')
                 # Vertex B
                 vertexB_list = lt.newList('ARRAY_LIST')
+                # Vertex A capital
+                vertexAcapital_list = lt.newList('ARRAY_LIST')
+                # Vertex B capital
+                vertexBcapital_list = lt.newList('ARRAY_LIST')
                 # iterar sobre la lista de vertex
                 vertex_list_iterator = it.newIterator(vertex_list)
                 while it.hasNext(vertex_list_iterator):
@@ -349,11 +332,15 @@ def AddEdgesGrapNoCapital(catalog):
                     # Separar el vertex
                     vertex_separado = vertex.split("*")
                     # Ver si es origin o destination
-                    if vertex_separado[0] == origin and vertex_separado[2] == cable:
+                    if vertex_separado[0] == origin and vertex_separado[2] == cable and not(mp.contains(catalog['capitals'], vertex_separado[1])):
                         lt.addLast(vertexA_list, vertex)
-                    elif vertex_separado[0] == destination and vertex_separado[2] == cable:
+                    elif vertex_separado[0] == destination and vertex_separado[2] == cable and not(mp.contains(catalog['capitals'], vertex_separado[1])):
                         lt.addLast(vertexB_list, vertex)
-                weight = weightConnection(catalog, origin, destination)
+                    if vertex_separado[0] == origin and mp.contains(catalog['capitals'], vertex_separado[1]):
+                        lt.addLast(vertexAcapital_list, vertex)
+                    elif vertex_separado[0] == origin and not(mp.contains(catalog['capitals'], vertex_separado[1])):
+                        lt.addLast(vertexBcapital_list, vertex)
+                weightNocapital = weightConnection(catalog, origin, destination)
                 # Iterar sobre list Vertex A para unir
                 vertexA_iterator = it.newIterator(vertexA_list)
                 while it.hasNext(vertexA_iterator):
@@ -362,7 +349,16 @@ def AddEdgesGrapNoCapital(catalog):
                     vertexB_iterator = it.newIterator(vertexB_list)
                     while it.hasNext(vertexB_iterator):
                         vertexB = it.next(vertexB_iterator)
-                        gr.addEdge(catalog['graph_landing_points'], vertexA, vertexB, weight)
+                        gr.addEdge(catalog['graph_landing_points'], vertexA, vertexB, weightNocapital)
+                # Iterar sobre list vertex A para unir
+                vertexAcapital_iterator = it.newIterator(vertexAcapital_list)
+                while it.hasNext(vertexAcapital_iterator):
+                    vertexAcapital = it.next(vertexAcapital_iterator)
+                    # Iterar sobre list vertex B para unir
+                    vertexBcapital_iterator = it.newIterator(vertexBcapital_list)
+                    while it.hasNext(vertexBcapital_iterator):
+                        vertexBcapital = it.next(vertexBcapital_iterator)
+                        gr.addEdge(catalog['graph_landing_points'], vertexAcapital, vertexBcapital, 585.31)
 
 
 def weightConnection(catalog, origin, destination):
@@ -392,37 +388,68 @@ def weightConnection(catalog, origin, destination):
     altitud_destination = element_destination['latitude']
     longitud_destination = element_destination['longitude']
     weight = haversine(float(altitud_origin), float(longitud_origin), float(altitud_destination), float(longitud_destination))
-    return weight
+    return weight    
 
 
-def addVertexCapital(catalog):
+def AddSameLanding_pointEdge(catalog):        
     """
+    Unen los mismo landing_point 
     """
-    pass
+    # Obtener la lista de landing_point 
+    landing_point_list = mp.keySet(catalog['map_landing_points'])
+    # Iterar sobre la lista de landing_point
+    landing_point_iterator = it.newIterator(landing_point_list)
+    while it.hasNext(landing_point_iterator):
+        landing_point = it.next(landing_point_iterator)
+        # Obtener el map de landing_point
+        landing_point_mapEntry = mp.get(catalog['map_landing_points'], landing_point)
+        landing_point_map = me.getValue(landing_point_mapEntry)
+        # Obtener la lista de ciudades
+        ciudades_list = mp.keySet(landing_point_map)
+        # Iterar sobre ciudades
+        i = 0
+        ciudades_iterator = it.newIterator(ciudades_list)
+        while i < int(lt.size(ciudades_list)):
+            ciudad = it.next(ciudades_iterator)
+            # Crear la lista de vertex A
+            vertexA_list = lt.newList('ARRAY_LIST')
+            # Obtener la lista de vertex
+            vertex_list = gr.vertices(catalog['graph_landing_points'])
+            # iterar sobre la lista de vertices 
+            vertex_iterator = it.newIterator(vertex_list)
+            while it.hasNext(vertex_iterator):
+                vertex = it.next(vertex_iterator)
+                # Separar el vertice
+                vertex_separado = vertex.split("*")
+                # Obtener la lista filtrada de vertices
+                if vertex_separado[0] == landing_point and vertex_separado[1] == ciudad and not mp.contains(catalog['capitals'], vertex_separado[1]):
+                    lt.addLast(vertexA_list, vertex)
+            # Iterar sobre vertexA_list
+            vertexA_iterator = it.newIterator(vertexA_list)
+            while it.hasNext(vertexA_iterator):
+                vertexA = it.next(vertexA_iterator)
+                # Iterar sobre vertexA_list
+                vertexB_iterator = it.newIterator(vertexA_list)
+                while it.hasNext(vertexB_iterator):
+                    vertexB = it.next(vertexB_iterator)
+                    if gr.getEdge(catalog['graph_landing_points'], vertexA, vertexB) == None:
+                        gr.addEdge(catalog['graph_landing_points'], vertexA, vertexB, float(0.1))
+            i += 1
 
+                
 
 def grap_Complete(catalog):
     """
     Agrega las funciones de la creacion del grafo
     """
-    AddVertexGrapNoCapital(catalog)
-    AddEdgesGrapNoCapital(catalog)
+    addVertex(catalog)
+    AddEdges(catalog)
+    AddSameLanding_pointEdge(catalog)
 
 
 # ================
 # Funciones Helper
 # ================
-
-
-def cleanServiceDistance(lastservice, service):
-    """
-    En caso de que el archivo tenga un espacio en la
-    distancia, se reemplaza con cero.
-    """
-    if service['Distance'] == '':
-        service['Distance'] = 0
-    if lastservice['Distance'] == '':
-        lastservice['Distance'] = 0
 
 
 def haversine(lat1, lon1, lat2, lon2):
