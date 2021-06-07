@@ -130,6 +130,7 @@ while True:
         respuesta = controller.req1(catalog, nombre1, nombre2)
         print("Tiempo [ms]: ", f"{respuesta[1]:.3f}", "  ||  ",
               "Memoria [kB]: ", f"{respuesta[2]:.3f}")
+        print(respuesta)
 
     elif int(inputs[0]) == 4:
         print("Cargando información de los archivos ....")
