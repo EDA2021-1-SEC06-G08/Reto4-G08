@@ -53,9 +53,6 @@ def printMenu():
     print("5- La ruta de menor distancia")
     print("6- Identificar la infraestructura critica de la red")
     print("7- Analisis de fallas")
-    print("8- Los mejores canales para transmitir")
-    print("9- La mejor ruta para comunicarme")
-    print("10- Graficando los grafos")
     print("0- Para salir del menu")
 
 # ===========================
@@ -88,17 +85,7 @@ def total_landing_point(catalog):
 def total_connections(catalog):
     """
     """
-    total = 0
-    lista_map = mp.valueSet(catalog['map_connections'])
-    iterator = it.newIterator(lista_map)
-    while it.hasNext(iterator):
-        mapa = it.next(iterator)
-        connections = mp.valueSet(mapa)
-        iterador = it.newIterator(connections)
-        while it.hasNext(iterador):
-            element = it.next(iterador)
-            total += 1
-    print("El total de connections es: " + str(total))
+    print("El total de connections es: " + str(gr.numEdges(catalog['graph_landing_points'])))
 
 def total_countries(catalog):
     """
@@ -145,12 +132,6 @@ while True:
     elif int(inputs[0]) == 6:
         print("Cargando información de los archivos ....")
     elif int(inputs[0]) == 7:
-        print("Cargando información de los archivos ....")
-    elif int(inputs[0]) == 8:
-        print("Cargando información de los archivos ....")
-    elif int(inputs[0]) == 9:
-        print("Cargando información de los archivos ....")
-    elif int(inputs[0]) == 10:
         print("Cargando información de los archivos ....")
     else:
         sys.exit(0)
