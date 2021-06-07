@@ -466,7 +466,7 @@ def req1(catalog, nombre1, nombre2):
     #    respuesta = 'Los dos landing points están en el mismo clúster'
     #else:
     #    respuesta = 'Los dos landing points no están en el mismo clúster'
-    #return num_componentes_conectados, respuesta 
+    return num_componentes_conectados#, respuesta 
 
 def req2(catalog):
     maxvert = None 
