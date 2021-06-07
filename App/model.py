@@ -176,7 +176,7 @@ def addMapConnections(catalog, element):
     Guarda la informacion de archivo Connections del CSV
     """
     # Verifica que este el landing_point de origen en la tabla de hash
-    idEsta = mp.contains(catalog['map_connections'], element['\ufefforigin'])
+    idEsta = mp.contains(catalog['map_connections'], element['ï»¿origin'])
     if not idEsta:
         # Crear la tabla de hash para el landing_point_destination 
         landing_point_destination_map = mp.newMap(numelements=20,
@@ -189,10 +189,10 @@ def addMapConnections(catalog, element):
         # Se mete la informacion en la tabla de hash
         mp.put(landing_point_cable_map, element['cable_name'], element)
         mp.put(landing_point_destination_map, element['destination'], landing_point_cable_map)                                
-        mp.put(catalog['map_connections'], element['\ufefforigin'], landing_point_destination_map)    
+        mp.put(catalog['map_connections'], element['ï»¿origin'], landing_point_destination_map)    
     else:
         # Obtener la tabla de hash de origen
-        landing_point_origen_mapEntry = mp.get(catalog['map_connections'], element['\ufefforigin'])
+        landing_point_origen_mapEntry = mp.get(catalog['map_connections'], element['ï»¿origin'])
         landing_point_origen_map = me.getValue(landing_point_origen_mapEntry)
         # Ver si esta el landing point de destination
         connectionEsta = mp.contains(landing_point_origen_map, element['destination'])
@@ -204,7 +204,7 @@ def addMapConnections(catalog, element):
             # Se mete la informacion
             mp.put(landing_point_cable_map, element['cable_name'], element)
             mp.put(landing_point_origen_map, element['destination'], landing_point_cable_map)
-            mp.put(catalog['map_connections'], element['\ufefforigin'], landing_point_origen_map)
+            mp.put(catalog['map_connections'], element['ï»¿origin'], landing_point_origen_map)
         else:
             # Obtener la tabla de hash de destination
             landing_point_destination_entry = mp.get(landing_point_origen_map, element['destination'])
@@ -215,7 +215,7 @@ def addMapConnections(catalog, element):
                 # Se mete la informacion                                
                 mp.put(landing_point_destination_map, element['cable_name'], element)
                 mp.put(landing_point_origen_map, element['destination'], landing_point_destination_map)
-                mp.put(catalog['map_connections'], element['\ufefforigin'], landing_point_origen_map)
+                mp.put(catalog['map_connections'], element['ï»¿origin'], landing_point_origen_map)
 
 
 def AddVertexLanding_PointCiudad(catalog):
@@ -548,13 +548,12 @@ def req3(catalog, pais_a, pais_b):
 def req4(catalog):
     grafo = catalog['graph_landing_points']
     vertices_grafo = gr.vertices(grafo)
-    vertice1 = lt.getElement(vertices, 0)
-    MST = Graphs.dijsktra.Dijkstra(grafo, vertice1)
-    vertices_MST = gr.vertices(MST)
-    vertice2 = lt.getElement(vertices_MST, (lt.size(vertices_MST)-1))
+    vertice1 = lt.getElement(vertices_grafo, 0)
+    MST = dijsktra.Dijkstra(grafo, vertice1)
+    vertice2 = lt.getElement(vertices_grafo, (lt.size(vertices_grafo)-1))
     num_nodos = gr.numVertices(MST)
     #para hallar costo total hacer un dist to con vertice inicial y final
-    distancia_total = Graphs.dijsktra.distTo(MST, vertice2)
+    distancia_total = dijsktra.distTo(MST, vertice2)
 
     return num_nodos, distancia_total
 
