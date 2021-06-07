@@ -39,6 +39,7 @@ from DISClib.Algorithms.Sorting import shellsort as sa
 from DISClib.DataStructures import mapentry as me
 from DISClib.Algorithms import Graphs 
 from DISClib.Algorithms.Graphs import scc
+from DISClib.Algorithms.Graphs import dijsktra
 from DISClib.ADT import stack as st 
 import config as cf
 assert cf
@@ -534,9 +535,9 @@ def req3(catalog, pais_a, pais_b):
             landing_point_a = vert
         
 
-    MST = Graphs.dijsktra.Dijkstra(grafo, landing_point_a)
-    distancia_total = Graphs.dijsktra.distTo(MST, landing_point_b)
-    camino_pila = Graphs.dijsktra.pathTo(MST, landing_point_b)
+    MST = dijsktra.Dijkstra(grafo, landing_point_a)
+    distancia_total = dijsktra.distTo(MST, landing_point_b)
+    camino_pila = dijsktra.pathTo(MST, landing_point_b)
     iterador = it.newIterator(camino_pila)
     while it.hasNext(iterador):
         ruta = st.pop(camino_pila)

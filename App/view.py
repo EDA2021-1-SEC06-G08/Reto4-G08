@@ -151,6 +151,11 @@ while True:
 
     elif int(inputs[0]) == 6:
         print("Cargando información de los archivos ....")
+        respuesta = controller.req4(catalog)
+        print(respuesta)
+        print("Tiempo [ms]: ", f"{respuesta[1]:.3f}", "  ||  ",
+              "Memoria [kB]: ", f"{respuesta[2]:.3f}")
+        
     elif int(inputs[0]) == 7:
         print("Cargando información de los archivos ....")
         nombre_landing_point = input('Inserte el nombre del landing_point: ')

@@ -137,6 +137,27 @@ def req3(catalog, pais_a, pais_b):
 
     return respuesta, delta_time, delta_memory
 
+
+def req4(catalog):
+    delta_time = -1.0
+    delta_memory = -1.0
+
+    tracemalloc.start()
+    start_time = getTime()
+    start_memory = getMemory()
+
+    respuesta = model.req4(catalog)
+
+    stop_memory = getMemory()
+    stop_time = getTime()
+    tracemalloc.stop()
+
+    delta_time = stop_time - start_time
+    delta_memory = deltaMemory(start_memory, stop_memory)
+
+
+    return respuesta, delta_time, delta_memory
+
 def req5(catalog, nombre_landing_point):
     delta_time = -1.0
     delta_memory = -1.0
