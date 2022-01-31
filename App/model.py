@@ -66,7 +66,6 @@ def newCatalog():
                 'map_countries': None,
                 'map_connections': None,
                 'capitals': None,
-                'vertex_capitals': None,
                 'graph_landing_points': None
               }
     catalog['map_landing_points'] = mp.newMap(numelements=3200,
@@ -80,10 +79,7 @@ def newCatalog():
                             loadfactor=0.4)
     catalog['capitals'] = mp.newMap(numelements=650,
                             maptype='PROBING',
-                            loadfactor=0.4)
-    catalog['vertex_capitals'] = mp.newMap(numelements=5500,
-                            maptype='PROBING',
-                            loadfactor=0.4)                        
+                            loadfactor=0.4)                   
     catalog['graph_landing_points'] = gr.newGraph(datastructure='ADJ_LIST',
                                                   directed=False,
                                                   size=5000)
@@ -593,3 +589,4 @@ def req5(catalog, nombre_landing_point):
     return lt.size(lista_paises_afectados), lista_paises_afectados['elements']
 
 
+print("Soy lindo")
